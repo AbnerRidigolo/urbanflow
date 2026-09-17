@@ -1,0 +1,12 @@
+urbanflow:
+  target: local
+  outputs:
+    local:
+      type: postgres
+      host: "{{ env_var('PGHOST', '127.0.0.1') }}"
+      port: "{{ env_var('PGPORT', '55432') | int }}"
+      user: "{{ env_var('PGUSER', 'urbanflow') }}"
+      password: "{{ env_var('PGPASSWORD', 'urbanflow_local_only') }}"
+      dbname: "{{ env_var('PGDATABASE', 'urbanflow') }}"
+      schema: "{{ env_var('UF_GOLD_SCHEMA', 'uf_build') }}"
+      threads: 2

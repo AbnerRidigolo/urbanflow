@@ -1,0 +1,23 @@
+flowchart LR
+  TLC[NYC TLC mensal / Parquet] --> B[Bronze original + SHA256 + manifesto]
+  B --> S[PySpark: padronização e qualidade]
+  S --> Q[Quarentena com motivo]
+  S --> G{Gate e reconciliação}
+  G --> SIL[Silver versionada]
+  SIL --> PG[PostgreSQL: COPY em schema isolado]
+  PG --> DBT[ELT: dbt SQL e testes]
+  DBT --> GOLD[Gold: fatos, dimensões e hora/zona]
+  GOLD --> ML[Lags deslocados + split temporal]
+  ML --> E[Baseline semanal vs HistGradientBoosting]
+  E --> M[MLflow + métricas + previsões]
+  GOLD --> BI[Painel local / exportações Power BI]
+  M --> BI
+  subgraph AWS_Alvo_Sem_Deploy[AWS alvo — sem implantação]
+    EB[EventBridge desabilitado] --> SF[Step Functions]
+    SF --> ECS[ECR / ECS Fargate]
+    ECS --> S3[S3 Bronze / Silver / Gold]
+    SF --> GL[Glue PySpark + Catalog]
+    GL --> AT[Athena + dbt]
+    SF --> CW[CloudWatch / SNS]
+    OIDC[GitHub OIDC] --> IAM[IAM por estágio]
+  end

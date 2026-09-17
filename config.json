@@ -1,0 +1,9 @@
+{
+  "months": ["2024-01", "2024-02", "2024-03"],
+  "max_download_bytes": 16777216,
+  "max_reject_ratio": 0.05,
+  "max_ml_rows": 1500000,
+  "max_ml_memory_mb": 512,
+  "spark_master": "local[2]",
+  "spark_driver_memory": "1g"
+}

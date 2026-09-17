@@ -1,0 +1,32 @@
+version: 2
+sources:
+  - name: silver
+    schema: "{{ env_var('UF_STAGE_SCHEMA', 'uf_stage') }}"
+    tables:
+      - name: trips
+      - name: zones
+      - name: coverage
+models:
+  - name: dim_zone
+    columns:
+      - name: zone_id
+        tests: [unique, not_null]
+  - name: dim_hour
+    columns:
+      - name: hour_at
+        tests: [unique, not_null]
+  - name: fct_trips
+    columns:
+      - name: pickup_zone_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_zone')
+                field: zone_id
+  - name: fct_hourly
+    columns:
+      - name: zone_id
+        tests: [not_null]
+      - name: hour_at
+        tests: [not_null]

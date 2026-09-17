@@ -1,0 +1,37 @@
+name: UrbanFlow local validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    env:
+      UF_TEST_POSTGRES: '1'
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: urbanflow
+          POSTGRES_PASSWORD: urbanflow_local_only
+          POSTGRES_DB: urbanflow
+        ports: [55432:5432]
+        options: --health-cmd "pg_isready -U urbanflow" --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '17'}
+      - run: pip install -r requirements.txt
+      - run: python -m pytest -q
+      - run: python scripts/validate_static.py
+      - run: node --check dashboard/app.js
+      - run: PYTHONPATH=src python -m urbanflow.cli fixture --months 2024-01
+      - run: PYTHONPATH=src python -c "from urbanflow.ingest import zones; zones('data')"
+      - run: PYTHONPATH=src python -m urbanflow.cli run --kind synthetic --months 2024-01
+      - uses: actions/upload-artifact@v4
+        with:
+          name: validation-evidence
+          path: artifacts/
+          retention-days: 3

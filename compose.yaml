@@ -1,0 +1,39 @@
+name: urbanflow
+services:
+  postgres:
+    image: postgres:16.4-bookworm
+    environment:
+      POSTGRES_USER: urbanflow
+      POSTGRES_PASSWORD: urbanflow_local_only
+      POSTGRES_DB: urbanflow
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U urbanflow"]
+      interval: 5s
+      retries: 15
+    mem_limit: 512m
+  pipeline:
+    build: .
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: urbanflow
+      PGPASSWORD: urbanflow_local_only
+      PGDATABASE: urbanflow
+    depends_on:
+      postgres: {condition: service_healthy}
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+      - ./dashboard:/app/dashboard
+    mem_limit: 3g
+    profiles: [pipeline]
+  dashboard:
+    image: python:3.11-slim-bookworm
+    command: ["python", "-m", "http.server", "8080", "--bind", "0.0.0.0", "--directory", "/dashboard"]
+    ports: ["127.0.0.1:8080:8080"]
+    volumes: ["./dashboard:/dashboard:ro"]
+    profiles: [dashboard]
+volumes:
+  pgdata:

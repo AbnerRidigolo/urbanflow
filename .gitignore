@@ -1,0 +1,17 @@
+.venv/
+.runtime/
+data/
+artifacts/
+mlruns/
+__pycache__/
+.pytest_cache/
+.env
+dbt/target/
+dbt/logs/
+infra/.terraform/
+*.tfstate*
+*.tfplan
+*.lock
+.sites-runtime/
+
+dbt/.user.yml

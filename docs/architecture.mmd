@@ -10,7 +10,7 @@ flowchart LR
   GOLD --> ML[Lags deslocados + split temporal]
   ML --> E[Baseline semanal vs HistGradientBoosting]
   E --> M[MLflow + métricas + previsões]
-  GOLD --> BI[Painel local / exportações Power BI]
+  GOLD --> BI[BI local UrbanFlow]
   M --> BI
   subgraph AWS_Alvo_Sem_Deploy[AWS alvo — sem implantação]
     EB[EventBridge desabilitado] --> SF[Step Functions]
@@ -20,4 +20,15 @@ flowchart LR
     GL --> AT[Athena + dbt]
     SF --> CW[CloudWatch / SNS]
     OIDC[GitHub OIDC] --> IAM[IAM por estágio]
+  end
+
+  subgraph DBX_Proposta[Databricks — proposta separada / não executada]
+    DB[Bronze Delta / origem preservada] --> DS[Silver / Spark + qualidade]
+    DS --> DG[Gold / Spark SQL ou dbt-databricks]
+    UC[Unity Catalog / governança e linhagem] -.-> DB
+    UC -.-> DS
+    UC -.-> DG
+    JOB[Jobs / dependências e gates] -.-> DS
+    DG --> MF[MLflow / experimentos]
+    DG --> EXP[Exportação versionada para BI local]
   end

@@ -8,5 +8,5 @@ for path in (root/'infra').glob('*.tf'):
 for path in (root/'dbt').rglob('*.yml'): yaml.safe_load(path.read_text())
 yaml.safe_load((root/'compose.yaml').read_text())
 json.loads((root/'config.json').read_text())
-for name in ['index.html','style.css','app.js']: assert (root/'dashboard'/name).is_file()
+for name in ['index.html','style.css','app.js','architecture.js']: assert (root/'dashboard'/name).is_file()
 print('PASS: Python AST, HCL syntax, YAML, JSON and dashboard entrypoints. Not terraform validate or AWS deployment.')

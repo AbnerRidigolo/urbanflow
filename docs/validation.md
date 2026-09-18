@@ -32,6 +32,14 @@ MLflow SQLite foi inicializado e registrou parâmetros, MAE, modelo, métricas e
 
 ## Limites honestos da entrega
 
-Não há PBIX verificado nem publicação Power BI. Exportações, DAX e instruções concretas foram entregues; painel HTML é a alternativa local. AWS é arquitetura alvo e código estático de referência, não uma migração operacional concluída. CI manual foi escrito, mas não executado no GitHub. Defaults têm três meses configuráveis; somente janeiro/2024 foi processado com dados reais nesta validação.
+O BI local é agora a entrega principal; Power BI foi retirado do escopo. Os documentos anteriores de Power BI foram arquivados como histórico. AWS é arquitetura alvo e código estático de referência, não uma migração operacional concluída. CI manual foi escrito, mas não executado no GitHub. Defaults têm três meses configuráveis; somente janeiro/2024 foi processado com dados reais nesta validação.
 
 O ambiente inicial aproveitou dependências Python previamente instaladas via venv com system-site-packages. requirements.txt fixa as dependências diretas relevantes; uma instalação limpa/Compose ainda deve ser validada para atestar reprodução fora deste host. Aviso Windows sobre winutils não impediu Spark; saída usa streaming Arrow em partições pequenas. Java/Python podem imprimir aviso de permissão ao encerrar o gateway, embora os testes/artefatos tenham passado.
+
+## Revisão do BI local — 18/09/2026
+
+- Cinco páginas verificadas no navegador: executivo, mobilidade, previsões, saúde e arquitetura.
+- Filtro Queens e retorno para todas as regiões; seleção JFK e retorno para todas as zonas. Console sem erros.
+- Inspeção visual do executivo e da arquitetura no viewport disponível; mobile não inspecionado.
+- `node --check` passou nos dois scripts; validação estática Python/HCL/YAML/JSON passou. Snapshot dos dados preservado.
+- Databricks documentado como proposta, sem implantação ou execução nessa plataforma.

@@ -27,6 +27,7 @@ jobs:
       - run: python -m pytest -q
       - run: python scripts/validate_static.py
       - run: node --check dashboard/app.js
+      - run: node --check dashboard/architecture.js
       - run: PYTHONPATH=src python -m urbanflow.cli fixture --months 2024-01
       - run: PYTHONPATH=src python -c "from urbanflow.ingest import zones; zones('data')"
       - run: PYTHONPATH=src python -m urbanflow.cli run --kind synthetic --months 2024-01

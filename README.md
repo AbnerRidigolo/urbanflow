@@ -2,7 +2,7 @@
 
 Pipeline de portfólio em **PySpark + PostgreSQL + dbt Core**, com simulação histórica de embarques por zona/hora, MLflow e painel local. Dados públicos NYC TLC Yellow Taxi. **Execução local gratuita, sem conta cloud e sem deploy de infraestrutura.**
 
-AWS é a arquitetura alvo documentada; Terraform e entrada Glue são referências para revisão, não infraestrutura em operação. O fluxo local funciona sem AWS. O BI entregue é uma alternativa HTML local acompanhada de exportações e instruções Power BI; não há PBIX validado.
+AWS é a arquitetura alvo documentada; Terraform e entrada Glue são referências para revisão, não infraestrutura em operação. O fluxo local funciona sem AWS. O **BI local UrbanFlow é a interface principal**: executivo, mobilidade, previsões, saúde e arquitetura. Não há dependência de Power BI. Databricks aparece como proposta documentada de evolução para lakehouse; não foi utilizado na execução medida.
 
 ## Começar localmente
 
@@ -28,7 +28,7 @@ Para recriar o ambiente: Python 3.11, Java 17, `python -m venv .venv`, ativar a 
 
 ## Visualizar a demonstração sem processar dados
 
-O repositório inclui o snapshot agregado validado de janeiro/2024 e as geometrias públicas das zonas. Para abrir as quatro páginas, basta executar `python -m http.server 8080 --bind 127.0.0.1 --directory dashboard` e acessar http://127.0.0.1:8080. Isso não requer Spark nem banco. O snapshot não é atualizado automaticamente.
+O repositório inclui o snapshot agregado validado de janeiro/2024 e as geometrias públicas das zonas. Para abrir as cinco páginas, basta executar `python -m http.server 8080 --bind 127.0.0.1 --directory dashboard` e acessar http://127.0.0.1:8080. Isso não requer Spark nem banco. O snapshot não é atualizado automaticamente.
 
 ## Docker Compose
 
@@ -73,7 +73,7 @@ Para explorar os experimentos, na venv: `python -m mlflow ui --backend-store-uri
 
 ## Entregáveis e verificação
 
-`dashboard/`: quatro páginas (executivo, mobilidade, previsões, saúde). `artifacts/`: CSVs, métricas, modelo, logs dbt e MLflow. `data/`: Bronze, Silver, quarentena, manifestos e logs. `docs/`: dicionário, arquitetura Mermaid, Power BI/DAX, roteiro de demo e decisões. `infra/`: Terraform de referência AWS, com gaps explicitados.
+`dashboard/`: cinco páginas (executivo, mobilidade, previsões, saúde e arquitetura). `artifacts/`: CSVs, métricas, modelo, logs dbt e MLflow. `data/`: Bronze, Silver, quarentena, manifestos e logs. `docs/`: dicionário, arquitetura Mermaid, BI local e evolução Databricks, roteiro de demo e decisões. `infra/`: Terraform de referência AWS, com gaps explicitados.
 
 ```sh
 python -m pytest -q
@@ -86,3 +86,7 @@ CI em `.github/workflows/ci.yml` é **manual**, sem disparo remoto neste trabalh
 ## Fontes
 
 [Dados e zonas NYC TLC](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page) · [Dicionário oficial Yellow Taxi](https://www.nyc.gov/assets/tlc/downloads/pdf/data_dictionary_trip_records_yellow.pdf). A TLC não garante exatidão de todos os registros. Métricas representam os dados aceitos deste projeto, não todo o transporte de NYC.
+
+## Arquitetura em destaque
+
+Veja [a proposta Databricks](docs/databricks.md) e [o texto para LinkedIn](docs/linkedin.md). No BI, a página **Arquitetura** separa o fluxo local executado das alternativas cloud. O padrão Bronze/Silver/Gold não implica que a plataforma Databricks tenha sido utilizada.

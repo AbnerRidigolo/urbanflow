@@ -1,3 +1,5 @@
+> Histórico: Power BI foi retirado do escopo. A entrega atual é o BI local em `dashboard/`. Este documento não faz parte do fluxo recomendado.
+
 # Power BI — modelo pronto para montar, sem PBIX fabricado
 
 Não foi criado nem validado um PBIX. O painel HTML local é uma alternativa funcional gratuita, não Power BI. Power BI Desktop pode importar os CSVs em `artifacts/public_full/` ou conectar ao PostgreSQL local `127.0.0.1:55432`, banco urbanflow, usuário urbanflow, senha de desenvolvimento urbanflow_local_only. Não publicar no Service.

@@ -1,5 +1,34 @@
 # UrbanFlow — engenharia de dados e mobilidade
 
+> Dos dados brutos de viagens a um painel analítico: um projeto de engenharia de dados com qualidade, rastreabilidade e execução local.
+
+**PySpark · PostgreSQL · dbt Core · MLflow · Python**
+
+[Ver demonstração](#visualizar-a-demonstração-sem-processar-dados) · [Executar pipeline](#começar-localmente) · [Resultados e limites](docs/validation.md)
+
+## O projeto em 30 segundos
+
+- **Problema:** transformar arquivos públicos de viagens em dados confiáveis para analisar embarques por zona e hora.
+- **Solução:** ingestão versionada, validação em PySpark, quarentena, carga no PostgreSQL e modelos analíticos em dbt.
+- **Entrega:** painel local com cinco páginas e experimentos de previsão histórica rastreados no MLflow.
+- **Execução documentada:** janeiro/2024, com 2.964.624 registros de entrada, 2.963.695 aceitos e 929 em quarentena.
+- **Qualidade documentada:** 6 modelos e 10 testes dbt, além de 12 testes Python aprovados na validação local. Veja as condições em [docs/validation.md](docs/validation.md).
+
+```mermaid
+flowchart LR
+    A[NYC TLC] --> B[Bronze: arquivos e manifestos]
+    B --> C[PySpark: validação]
+    C --> Q[Quarentena]
+    C --> D[Silver]
+    D --> E[PostgreSQL e dbt]
+    E --> F[Gold: modelos analíticos]
+    F --> G[Painel local]
+    F --> H[MLflow: previsão histórica]
+```
+
+## Escopo e tecnologias
+
+
 Pipeline de portfólio em **PySpark + PostgreSQL + dbt Core**, com simulação histórica de embarques por zona/hora, MLflow e painel local. Dados públicos NYC TLC Yellow Taxi. **Execução local gratuita, sem conta cloud e sem deploy de infraestrutura.**
 
 AWS é a arquitetura alvo documentada; Terraform e entrada Glue são referências para revisão, não infraestrutura em operação. O fluxo local funciona sem AWS. O **BI local UrbanFlow é a interface principal**: executivo, mobilidade, previsões, saúde e arquitetura. Não há dependência de Power BI. Databricks aparece como proposta documentada de evolução para lakehouse; não foi utilizado na execução medida.

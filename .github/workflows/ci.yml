@@ -1,11 +1,17 @@
 name: UrbanFlow local validation
 on:
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   contracts:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       UF_TEST_POSTGRES: '1'
     services:
@@ -16,23 +22,90 @@ jobs:
           POSTGRES_PASSWORD: urbanflow_local_only
           POSTGRES_DB: urbanflow
         ports: [55432:5432]
-        options: --health-cmd "pg_isready -U urbanflow" --health-interval 5s --health-retries 10
+        options: --health-cmd "pg_isready -h 127.0.0.1 -U urbanflow -d urbanflow" --health-interval 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
+        with: {persist-credentials: false}
       - uses: actions/setup-python@v5
         with: {python-version: '3.11'}
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: '17'}
-      - run: pip install -r requirements.txt
+      - run: python -m pip install -r requirements.txt
+      - run: python -m pip check
       - run: python -m pytest -q
       - run: python scripts/validate_static.py
       - run: node --check dashboard/app.js
       - run: node --check dashboard/architecture.js
-      - run: PYTHONPATH=src python -m urbanflow.cli fixture --months 2024-01
-      - run: PYTHONPATH=src python -c "from urbanflow.ingest import zones; zones('data')"
-      - run: PYTHONPATH=src python -m urbanflow.cli run --kind synthetic --months 2024-01
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with: {persist-credentials: false}
+
+      - name: Build clean pipeline image
+        run: |
+          docker compose --profile pipeline --profile dashboard config --quiet
+          docker compose --profile pipeline build --pull pipeline
+          docker compose --profile pipeline run --rm --no-deps pipeline python -m pip check
+
+      - name: Run the synthetic pipeline on a fresh database
+        run: |
+          mkdir -p data/reference artifacts
+          cat > data/reference/taxi_zone_lookup.csv <<'CSV'
+          LocationID,Borough,Zone,service_zone
+          132,Queens,Test zone 132,Airports
+          161,Manhattan,Test zone 161,Yellow Zone
+          236,Manhattan,Test zone 236,Yellow Zone
+          CSV
+          docker compose up -d --wait --wait-timeout 90 postgres
+          docker compose --profile pipeline run --rm pipeline python -m urbanflow.cli fixture --months 2024-01
+          docker compose --profile pipeline run --rm pipeline python -m urbanflow.cli run --kind synthetic --months 2024-01
+
+      - name: Verify the dashboard serves the generated results
+        run: |
+          docker compose --profile dashboard up -d dashboard
+          curl --fail --silent --show-error --retry 8 --retry-connrefused --max-time 5 --retry-max-time 30 \
+            http://127.0.0.1:8080/ -o /dev/null
+          curl --fail --silent --show-error --max-time 5 \
+            http://127.0.0.1:8080/data.json -o "$RUNNER_TEMP/urbanflow-dashboard.json"
+          cmp artifacts/synthetic/dashboard.json "$RUNNER_TEMP/urbanflow-dashboard.json"
+          python3 - "$RUNNER_TEMP/urbanflow-dashboard.json" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          dashboard = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+          report = json.loads(Path("artifacts/last_run.json").read_text(encoding="utf-8"))
+          assert dashboard["kind"] == report["kind"] == "synthetic"
+          assert dashboard["months"] == report["months"] == ["2024-01"]
+          summary = dashboard["summary"]
+          assert summary["rejected"] == 1
+          assert summary["input"] == summary["trips"] + summary["rejected"]
+          assert report["warehouse"]["loaded_rows"] == summary["trips"] > 0
+          assert report["warehouse"]["dbt_passed"] is True
+          assert dashboard["ml"]["model"]["n"] > 0
+          print(f"Smoke passed: {summary['trips']} synthetic trips accepted, one quarantined.")
+          PY
+
+      - name: Show Compose logs after a failure
+        if: failure()
+        run: docker compose --profile pipeline --profile dashboard logs --no-color
+
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: validation-evidence
-          path: artifacts/
+          name: compose-validation-evidence
+          path: |
+            artifacts/last_run.json
+            artifacts/dbt/*/console.log
+            artifacts/dbt/*/run_results.json
+            artifacts/synthetic/dashboard.json
+            data/pipeline.log
           retention-days: 3
+          if-no-files-found: ignore
+
+      - name: Tear down the runner's Compose environment
+        if: always()
+        run: docker compose --profile pipeline --profile dashboard down --volumes

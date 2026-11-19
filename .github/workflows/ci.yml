@@ -66,7 +66,7 @@ jobs:
       - name: Verify the dashboard serves the generated results
         run: |
           docker compose --profile dashboard up -d dashboard
-          curl --fail --silent --show-error --retry 8 --retry-connrefused --max-time 5 --retry-max-time 30 \
+          curl --fail --silent --show-error --retry 8 --retry-all-errors --retry-delay 1 --max-time 5 --retry-max-time 30 \
             http://127.0.0.1:8080/ -o /dev/null
           curl --fail --silent --show-error --max-time 5 \
             http://127.0.0.1:8080/data.json -o "$RUNNER_TEMP/urbanflow-dashboard.json"

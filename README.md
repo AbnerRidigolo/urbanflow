@@ -61,15 +61,17 @@ O repositório inclui o snapshot agregado validado de janeiro/2024 e as geometri
 
 ## Docker Compose
 
+Execute na raiz de um clone com Docker e Compose v2. O build baixa as imagens base e instala Python, Java e as dependências no container. A ingestão de janeiro/2024 baixa o arquivo mensal e o catálogo de zonas públicos da TLC.
+
 ```sh
-docker compose up -d postgres
-docker compose --profile pipeline run --rm pipeline python -m urbanflow.cli fixture --months 2024-01
+docker compose up -d --wait --wait-timeout 90 postgres
+docker compose --profile pipeline build --pull pipeline
 docker compose --profile pipeline run --rm pipeline python -m urbanflow.cli ingest --months 2024-01 --full --max-mb 64
 docker compose --profile pipeline run --rm pipeline python -m urbanflow.cli run --kind public_full --months 2024-01
 docker compose --profile dashboard up -d dashboard
 ```
 
-PostgreSQL e dashboard são expostos somente em localhost. `docker compose down` encerra serviços e preserva volume do banco. Não use `down -v` se quiser preservar o banco. Compose foi fornecido para reprodução; confira em `docs/validation.md` se a execução Docker foi efetivamente testada neste host.
+Abra o painel em http://127.0.0.1:8080. O PostgreSQL fica em `127.0.0.1:55432`. A execução atualiza `dashboard/data.json` no clone e grava os dados e relatórios em `data/` e `artifacts/`. Use `docker compose --profile pipeline --profile dashboard down` para encerrar os serviços e preservar o volume do PostgreSQL.
 
 ## Dados, ETL e ELT
 
@@ -110,7 +112,7 @@ python scripts/validate_static.py
 node --check dashboard/app.js
 ```
 
-CI em `.github/workflows/ci.yml` é **manual**, sem disparo remoto neste trabalho. Para publicar como repo independente, coloque UrbanFlow na raiz do repo; se mantiver um monorepo, mova/adapte o workflow para `.github/workflows` da raiz e configure working-directory. O workflow não é disparado por push; sua execução manual não foi iniciada nesta entrega.
+O [workflow UrbanFlow local validation](.github/workflows/ci.yml) roda em pull requests para `main` e aceita disparo manual. Um job instala as dependências e roda pytest e as verificações estáticas. O outro constrói a imagem do pipeline, usa um banco vazio e dados sintéticos e verifica o resultado que o dashboard serve por HTTP. O smoke usa três zonas de teste locais e dispensa downloads da TLC ou credenciais AWS. Consulte a aba [Actions](https://github.com/AbnerRidigolo/urbanflow/actions) para ver o resultado e os artefatos de cada execução.
 
 ## Fontes
 

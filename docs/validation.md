@@ -32,9 +32,9 @@ MLflow SQLite foi inicializado e registrou parâmetros, MAE, modelo, métricas e
 
 ## Limites honestos da entrega
 
-O BI local é agora a entrega principal; Power BI foi retirado do escopo. Os documentos anteriores de Power BI foram arquivados como histórico. AWS é arquitetura alvo e código estático de referência, não uma migração operacional concluída. CI manual foi escrito, mas não executado no GitHub. Defaults têm três meses configuráveis; somente janeiro/2024 foi processado com dados reais nesta validação.
+O BI local é agora a entrega principal; Power BI foi retirado do escopo. Os documentos anteriores de Power BI foram arquivados como histórico. AWS é arquitetura alvo e código estático de referência, não uma migração operacional concluída. O CI original era manual e não foi executado nesta validação de setembro. Defaults têm três meses configuráveis; somente janeiro/2024 foi processado com dados reais nesta validação.
 
-O ambiente inicial aproveitou dependências Python previamente instaladas via venv com system-site-packages. requirements.txt fixa as dependências diretas relevantes; uma instalação limpa/Compose ainda deve ser validada para atestar reprodução fora deste host. Aviso Windows sobre winutils não impediu Spark; saída usa streaming Arrow em partições pequenas. Java/Python podem imprimir aviso de permissão ao encerrar o gateway, embora os testes/artefatos tenham passado.
+O ambiente inicial aproveitou dependências Python previamente instaladas via venv com system-site-packages. `requirements.txt` fixa as dependências diretas relevantes. A validação de setembro usou esse ambiente existente. Aviso Windows sobre winutils não impediu Spark; saída usa streaming Arrow em partições pequenas. Java/Python podem imprimir aviso de permissão ao encerrar o gateway, embora os testes/artefatos tenham passado.
 
 ## Revisão do BI local — 18/09/2026
 
@@ -43,3 +43,9 @@ O ambiente inicial aproveitou dependências Python previamente instaladas via ve
 - Inspeção visual do executivo e da arquitetura no viewport disponível; mobile não inspecionado.
 - `node --check` passou nos dois scripts; validação estática Python/HCL/YAML/JSON passou. Snapshot dos dados preservado.
 - Databricks documentado como proposta, sem implantação ou execução nessa plataforma.
+
+## CI de pull request e smoke do Compose
+
+O workflow roda em pull requests para `main` e por disparo manual. O job `contracts` instala as dependências em um runner Linux e roda a suíte Python com PostgreSQL e as verificações estáticas. O job `compose-smoke` constrói a imagem do pipeline, roda `pip check` dentro dela e usa um banco PostgreSQL vazio para processar um mês sintético com três zonas de teste locais.
+
+O smoke verifica a reconciliação de entrada, viagens aceitas e uma linha em quarentena, a carga PostgreSQL, os testes dbt, a geração de previsões e o JSON servido pelo dashboard. O resultado de cada execução fica na aba [Actions](https://github.com/AbnerRidigolo/urbanflow/actions), junto com os relatórios e logs do job. Os números da validação histórica acima são da execução local com dados públicos de janeiro/2024.

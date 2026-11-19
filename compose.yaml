@@ -9,7 +9,7 @@ services:
     ports: ["127.0.0.1:55432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U urbanflow"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U urbanflow -d urbanflow"]
       interval: 5s
       retries: 15
     mem_limit: 512m

@@ -46,13 +46,13 @@ jobs:
 
       - name: Build clean pipeline image
         run: |
+          mkdir -p data/reference artifacts
           docker compose --profile pipeline --profile dashboard config --quiet
           docker compose --profile pipeline build --pull pipeline
           docker compose --profile pipeline run --rm --no-deps pipeline python -m pip check
 
       - name: Run the synthetic pipeline on a fresh database
         run: |
-          mkdir -p data/reference artifacts
           cat > data/reference/taxi_zone_lookup.csv <<'CSV'
           LocationID,Borough,Zone,service_zone
           132,Queens,Test zone 132,Airports
